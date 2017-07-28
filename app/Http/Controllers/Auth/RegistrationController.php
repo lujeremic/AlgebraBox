@@ -6,10 +6,12 @@ use Mail;
 use Session;
 use Sentinel;
 use Activation;
+use Storage;
 use App\Http\Requests;
 use Centaur\AuthManager;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\UserRoot;
 
 class RegistrationController extends Controller
 {
@@ -32,8 +34,8 @@ class RegistrationController extends Controller
      * @return View
      */
     public function getRegister()
-    {
-        return view('auth.register');
+    { 
+		return view('auth.register');
     }
 
     /**
@@ -98,7 +100,7 @@ class RegistrationController extends Controller
     {
         // Attempt the registration
         $result = $this->authManager->activate($code);
-
+		
         if ($result->isFailure()) {
             // Normally an exception would trigger a redirect()->back() However,
             // because they get here via direct link, back() will take them
@@ -106,6 +108,19 @@ class RegistrationController extends Controller
             $result->setRedirectUrl(route('auth.login.form'));
             return $result->dispatch();
         }
+		
+		// Create user root directory
+		$dir_name = md5(uniqid());
+		$directories = Storage::disk('public')->allDirectories();
+		
+		if( ! in_array($dir_name, $directories)) {
+			Storage::disk('public')->makeDirectory($dir_name);
+			$user_root = new UserRoot();
+			$user_root->saveDir($dir_name, $result->user->id);
+		} else {
+			session()->flash('error', 'The directory already exists.');
+		}
+		
 
         // Ask the user to check their email for the activation link
         $result->setMessage('Registration complete.  You may now log in.');
