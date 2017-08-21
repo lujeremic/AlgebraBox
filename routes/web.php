@@ -1,20 +1,19 @@
 <?php
 
 /*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| This file is where you may define all of the routes that are handled
-| by your application. Just tell Laravel the URIs it should respond
-| to using a Closure or controller method. Build something great!
-|
-*/
+  |--------------------------------------------------------------------------
+  | Web Routes
+  |--------------------------------------------------------------------------
+  |
+  | This file is where you may define all of the routes that are handled
+  | by your application. Just tell Laravel the URIs it should respond
+  | to using a Closure or controller method. Build something great!
+  |
+ */
 
 // Index page
 Route::get('/', ['as' => 'index', 'uses' => 'IndexController@index']);
-// Home page
-Route::get('home', ['as' => 'home', 'uses' => 'User\HomeController@index']);
+
 
 // Authorization
 Route::get('login', ['as' => 'auth.login.form', 'uses' => 'Auth\SessionController@getLogin']);
@@ -38,12 +37,20 @@ Route::post('password/reset', ['as' => 'auth.password.request.attempt', 'uses' =
 
 
 
-/*############# ADMIN ##############*/
+/* ############# ADMIN ############## */
 Route::group(['prefix' => 'admin'], function () {
-  // Dashboard
-  Route::get('/', ['as' => 'admin.dashboard', 'uses' => 'Admin\DashboardController@index']);
-  // Users
-  Route::resource('users', 'Admin\UserController');
-  // Roles
-  Route::resource('roles', 'Admin\RoleController');
+	// Dashboard
+	Route::get('/', ['as' => 'admin.dashboard', 'uses' => 'Admin\DashboardController@index']);
+	// Users
+	Route::resource('users', 'Admin\UserController');
+	// Roles
+	Route::resource('roles', 'Admin\RoleController');
+});
+/* ############# Regular User ############## */
+Route::group(['prefix' => 'home'], function () {
+	// Home page
+	Route::get('/{slugs?}', 'User\HomeController@index')->where('slugs', '(.*)')->name('home');
+	// post Upload files
+	Route::post('/upload', 'User\UploadController@uploadFiles');
+	Route::post('/{slugs?}', 'User\UploadController@uploadFiles')->where('slugs', '(.*/upload)');
 });
