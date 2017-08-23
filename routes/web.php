@@ -49,7 +49,15 @@ Route::group(['prefix' => 'admin'], function () {
 /* ############# Regular User ############## */
 Route::group(['prefix' => 'home'], function () {
 	// Home page
-	Route::get('/{slugs?}', 'User\HomeController@index')->where('slugs', '(.*)')->name('home');
+	Route::get('/{slugs?}', function(Illuminate\Http\Request $request) {
+		$controllerPath = '\App\Http\Controllers\User\HomeController';
+		// check if request is file preview
+		$filePreview = $request->input('preview');
+		if (!is_null($filePreview)) {
+			return App::call($controllerPath . '@filePreview');
+		}
+		return App::call($controllerPath . '@index');
+	})->where('slugs', '(.*)')->name('home');
 	// post Upload files
 	Route::post('/upload', 'User\UploadController@uploadFiles');
 	Route::post('/{slugs?}', 'User\UploadController@uploadFiles')->where('slugs', '(.*/upload)');

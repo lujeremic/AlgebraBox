@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\UserRoot as UserDirectory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\File;
 
 class HomeController extends Controller {
 
@@ -29,45 +30,60 @@ class HomeController extends Controller {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function index(Request $request) {
-		$urlSegments = $request->segments();
-		$currentRequestDirectory = array_pop($urlSegments);
+		$storageDisk = Storage::disk('public');
+		dump($storageDisk);
 		$viewData = array();
-		$dirName = UserDirectory::getUserDirName($this->sentinel->getUser()->getUserId());
-		$userDiskData = new \stdClass();
-		if ($currentRequestDirectory !== 'home') {
-			if (count($urlSegments) > 1) {
-				unset($urlSegments[0]);
-				$dirName = $dirName . '/' . implode('/', $urlSegments) . '/' . $currentRequestDirectory;
-			} else {
-				$dirName = $dirName . '/' . $currentRequestDirectory;
-			}
+		$urlSegments = $request->segments();
+		$pathSegments = $urlSegments;
+		// check num of segments, home will be always 0 index 
+		$numOfSegments = count($urlSegments);
+		$requestedDirectoryName = $pathSegments[$numOfSegments - 1];
+		$userRootDirName = UserDirectory::getUserDirectoryName($this->sentinel->getUser()->getUserId());
+		// replace home with users root directory name
+		$pathSegments[0] = str_replace('home', $userRootDirName, $pathSegments[0]);
+		if ($numOfSegments === 1) {
+			$requestedDirectoryPath = '/' . $pathSegments[0] . '/';
+		} else
+			$requestedDirectoryPath = implode('/', $pathSegments) . '/';
+		// check requested directory path exists or not
+		if (!$storageDisk->exists($requestedDirectoryPath)) {
+			// set message!
+			$request->session()->flash('dangerMsg', 'Requested directory "' . $requestedDirectoryName . '" doesn\'t exist!');
+			return redirect('home');
 		}
-		$directories = Storage::disk('public')->directories($dirName);
+		$viewData['user_disk'] = new \stdClass();
+		$directories = $storageDisk->directories($requestedDirectoryPath);
 		$numOfDirectories = count($directories);
-		$userDiskData->number_of_directories = $numOfDirectories;
-		$userDiskData->directories = array();
-		// set directories 
+		$viewData['user_disk']->number_of_directories = $numOfDirectories;
+		$viewData['user_disk']->directories = array();
+		// set directories structure 
 		if ($numOfDirectories) {
 			for ($i = 0; $i < $numOfDirectories; $i++) {
-				$directory = $directories[$i];
-				$dir = str_replace($dirName . '/', '', $directory);
-				$userDiskData->directories[$i] = array('path' => url($request->getPathInfo(), array($dir)), 'name' => $dir);
+				$directoryPath = $directories[$i];
+				$dirPathSlugs = explode('/', $directoryPath);
+				$dirName = array_pop($dirPathSlugs);
+				$viewData['user_disk']->directories[$i] = array('path' => $request->getRelativeUriForPath($request->getRequestUri() . '/' . $dirName), 'name' => $dirName);
 			}
 		}
-		// set home directory files 
-		$files = Storage::disk('public')->files($dirName);
+		// set files data 
+		$files = $storageDisk->files($requestedDirectoryPath);
 		$numOfFiles = count($files);
-		$userDiskData->number_of_files = $numOfFiles;
-		$userDiskData->files = array();
+		$viewData['user_disk']->number_of_files = $numOfFiles;
+		$viewData['user_disk']->files = array();
 		for ($i = 0; $i < $numOfFiles; $i++) {
-			$file = $files[$i];
-			$fileName = str_replace($dirName . '/', '', $file);
-			$userDiskData->files[$i] = array('path' => $file, 'name' => $fileName);
+			$filePath = $files[$i];
+			$filePathSlugs = explode('/', $filePath);
+			$file = array_pop($filePathSlugs);
+			$fileName = pathinfo($file, PATHINFO_FILENAME);
+			$viewData['user_disk']->files[$i] = array('path' => $request->getRelativeUriForPath($request->getRequestUri() . '/' . $fileName), 'name' => $fileName);
 		}
-		// push user disk data 
-		$viewData['user_disk'] = $userDiskData;
-		//die('<pre>' . print_r($viewData, 1) . '</pre>');
+
 		return view('user.home', $viewData);
+	}
+
+	public function filePreview(Request $request) {
+		dump($request);
+		return view('user.home_file_preview');
 	}
 
 }

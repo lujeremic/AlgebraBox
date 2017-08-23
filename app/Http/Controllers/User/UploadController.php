@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\URL;
 class UploadController extends Controller {
 
 	public function uploadFiles(UploadRequest $request) {
-		$userRootDirName = userRootDirectory::getUserDirName($request->user()->id);
+		$userRootDirName = userRootDirectory::getUserDirectoryName($request->user()->id);
 		// user dir is missing
 		if (is_null($userRootDirName)) {
 			abort(404, 'Seems like your main user directory is missing, please contact support!');

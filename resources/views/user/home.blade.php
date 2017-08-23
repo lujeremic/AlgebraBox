@@ -30,6 +30,9 @@
 	@if(Session::has('upload_notice_messages'))
     <div class="alert alert-warning"><em> {!! session('upload_warning_messages') !!}</em></div>
 	@endif
+	@if(Session::has('dangerMsg'))
+    <div class="alert alert-danger"><em> {!! session('dangerMsg') !!}</em></div>
+	@endif
 	<form action="home/upload" method="post" enctype="multipart/form-data">
 		{{ csrf_field() }}
 		<br />

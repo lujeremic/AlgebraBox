@@ -4,6 +4,7 @@ namespace App\Models;
 
 use \Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 
 class UserRoot extends Model {
 
@@ -21,18 +22,27 @@ class UserRoot extends Model {
 	 */
 	protected $fillable = ['name', 'user_id'];
 
-	public static function getUserDirName($userID) {
+	public static function getUserDirectoryName($userID) {
+		// retrive from session
+		$storedSessionUserdirName = request()->session()->get('user.root_directory_name');
+		// root directory name exists return name
+		if (!is_null($storedSessionUserdirName)) {
+			return $storedSessionUserdirName;
+		}
+
 		$result = self::where('user_id', '=', $userID)->get(array('name'))->first();
+		// something is wrong!!!
+		if (is_null($result))
+			abort(402, 'Your directory is missing, please contact web administrator so we can fix your problem!');
+
 		$publicDisk = Storage::disk('public');
-		if (is_null($result)) 
-			return $result;
-		
 		$directories = $publicDisk->allDirectories();
 		$dirName = $result->name;
 		// create user dir if it doesn't exist
 		if (!in_array($dirName, $directories)) {
 			$publicDisk->makeDirectory($dirName);
 		}
+		request()->session()->put('user.root_directory_name', $dirName);
 		return $dirName;
 	}
 
