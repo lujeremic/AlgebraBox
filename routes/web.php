@@ -59,6 +59,21 @@ Route::group(['prefix' => 'home'], function () {
 		return App::call($controllerPath . '@index');
 	})->where('slugs', '(.*)')->name('home');
 	// post Upload files
-	Route::post('/upload', 'User\UploadController@uploadFiles');
-	Route::post('/{slugs?}', 'User\UploadController@uploadFiles')->where('slugs', '(.*/upload)');
+	//Route::post('/upload', 'User\UploadController@uploadFiles');
+	Route::post('/{slugs?}', function(Illuminate\Http\Request $request) {
+		$action = $request->get('action');
+		$method = ''; // Just for being hard to get :)
+		switch ($action) {
+			case 'upload-files':
+				$method = 'uploadFiles';
+				break;
+			case 'create-folder':
+				$method = 'makeDirectory';
+				break;
+			default :
+				abort(400, 'You have a bad request!');
+				break;
+		}
+		return App::call('\App\Http\Controllers\User\UploadController@' . $method);
+	})->where('slugs', '(.*/action)');
 });

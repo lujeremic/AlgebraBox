@@ -5,11 +5,19 @@ namespace App\Http\Controllers\User;
 use Storage;
 use Illuminate\Http\Request;
 use App\Http\Requests\Users\UploadRequest;
+use App\Http\Requests\Users\MakeDirectoryRequest;
 use App\Http\Controllers\Controller;
 use App\Models\UserRoot as userRootDirectory;
 use Illuminate\Support\Facades\URL;
 
 class UploadController extends Controller {
+
+	protected $_referer_request = null;
+
+	public function __construct() {
+		// referer(previous) url scheme (When in post this is path from where post was called)
+		$this->_referer_request = \GuzzleHttp\Psr7\uri_for(URL::previous());
+	}
 
 	public function uploadFiles(UploadRequest $request) {
 		$userRootDirName = userRootDirectory::getUserDirectoryName($request->user()->id);
@@ -17,10 +25,7 @@ class UploadController extends Controller {
 		if (is_null($userRootDirName)) {
 			abort(404, 'Seems like your main user directory is missing, please contact support!');
 		}
-		$refereRequest = URL::previous();
-		$refereRequestUri = \GuzzleHttp\Psr7\uri_for($refereRequest);
-		$refereRequestPath = $refereRequestUri->getPath();
-		$storeDirPath = urldecode(str_replace(array('/home'), array(''), $userRootDirName . $refereRequestPath));
+		$storeDirPath = $this->getUsersDirectoryPathFromRequestUrl($userRootDirName);
 		$allUploadedFiles = $request->file('files');
 		$noticeMsg = "";
 		foreach ($allUploadedFiles as $value) {
@@ -32,7 +37,25 @@ class UploadController extends Controller {
 			$value->storeAs($storeDirPath, $value->getClientOriginalName(), 'public');
 		}
 		$request->session()->flash('upload_warning_messages', $noticeMsg);
-		return redirect($refereRequestPath);
+		return redirect($this->_referer_request->getPath());
+	}
+
+	public function makeDirectory(MakeDirectoryRequest $request, $refererRequest = null) {
+		$userRootDirName = userRootDirectory::getUserDirectoryName($request->user()->id);
+		// user dir is missing
+		if (is_null($userRootDirName)) {
+			abort(404, 'Seems like your main user directory is missing, please contact support!');
+		}
+		// get current directory path
+		$storeDirPath = $this->getUsersDirectoryPathFromRequestUrl($userRootDirName);
+		dump($storeDirPath);
+		// create directory path
+		Storage::disk('public')->makeDirectory($storeDirPath . '/' . $request->get('directory_name'));
+		return redirect($this->_referer_request->getPath());
+	}
+
+	protected function getUsersDirectoryPathFromRequestUrl($userRootDirName) {
+		return urldecode(str_replace(array('/home'), array(''), $userRootDirName . $this->_referer_request->getPath()));
 	}
 
 	/**

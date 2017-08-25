@@ -62,7 +62,7 @@ class HomeController extends Controller {
 				$directoryPath = $directories[$i];
 				$dirPathSlugs = explode('/', $directoryPath);
 				$dirName = array_pop($dirPathSlugs);
-				$viewData['user_disk']->directories[$i] = array('path' => $request->getRelativeUriForPath($request->getRequestUri() . '/' . $dirName), 'name' => $dirName);
+				$viewData['user_disk']->directories[$i] = array('path' => ltrim($request->getRelativeUriForPath($request->getRequestUri() . '/' . $dirName, '/')), 'name' => $dirName);
 			}
 		}
 		// set files data 
