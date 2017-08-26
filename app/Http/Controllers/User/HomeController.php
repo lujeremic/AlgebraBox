@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\User;
 
+use Carbon\Carbon;
 use Cartalyst\Sentinel\Sentinel;
 use Illuminate\Support\Facades\Storage;
 use App\Models\UserRoot as UserDirectory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\File;
+use App\Traits\HtmlUtilitiesTrait as HtmlUtilities;
 
 class HomeController extends Controller {
 
@@ -31,7 +32,6 @@ class HomeController extends Controller {
 	 */
 	public function index(Request $request) {
 		$storageDisk = Storage::disk('public');
-		dump($storageDisk);
 		$viewData = array();
 		$urlSegments = $request->segments();
 		$pathSegments = $urlSegments;
@@ -62,7 +62,8 @@ class HomeController extends Controller {
 				$directoryPath = $directories[$i];
 				$dirPathSlugs = explode('/', $directoryPath);
 				$dirName = array_pop($dirPathSlugs);
-				$viewData['user_disk']->directories[$i] = array('path' => ltrim($request->getRelativeUriForPath($request->getRequestUri() . '/' . $dirName, '/')), 'name' => $dirName);
+				$lastModified = $storageDisk->lastModified($directoryPath);
+				$viewData['user_disk']->directories[$i] = array('path' => ltrim($request->getRelativeUriForPath($request->getRequestUri() . '/' . $dirName, '/')), 'name' => $dirName, 'last_modified' => Carbon::createFromTimestamp($lastModified)->toDateTimeString());
 			}
 		}
 		// set files data 
@@ -75,9 +76,11 @@ class HomeController extends Controller {
 			$filePathSlugs = explode('/', $filePath);
 			$file = array_pop($filePathSlugs);
 			$fileName = pathinfo($file, PATHINFO_FILENAME);
-			$viewData['user_disk']->files[$i] = array('path' => $request->getRelativeUriForPath($request->getRequestUri() . '/' . $fileName), 'name' => $fileName);
+			$lastModified = $storageDisk->lastModified($filePath);
+			$viewData['user_disk']->files[$i] = array('path' => $request->getRelativeUriForPath($request->getRequestUri() . '/' . $file), 'name' => $file, 'last_modified' => Carbon::createFromTimestamp($lastModified)->toDateTimeString());
 		}
-
+		// create breadcrumb
+		$viewData['breadcrumb'] = HtmlUtilities::createBreadCrumb($request->getPathInfo());
 		return view('user.home', $viewData);
 	}
 

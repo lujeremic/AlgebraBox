@@ -40,7 +40,8 @@ class UploadController extends Controller {
 		return redirect($this->_referer_request->getPath());
 	}
 
-	public function makeDirectory(MakeDirectoryRequest $request, $refererRequest = null) {
+	public function makeDirectory(MakeDirectoryRequest $request) {
+		$storage = Storage::disk('public');
 		$userRootDirName = userRootDirectory::getUserDirectoryName($request->user()->id);
 		// user dir is missing
 		if (is_null($userRootDirName)) {
@@ -48,9 +49,14 @@ class UploadController extends Controller {
 		}
 		// get current directory path
 		$storeDirPath = $this->getUsersDirectoryPathFromRequestUrl($userRootDirName);
-		dump($storeDirPath);
+		// set new directory path
+		$newDirName = $request->get('directory_name');
+		$newDirPath = $storeDirPath . '/' . $newDirName;
 		// create directory path
-		Storage::disk('public')->makeDirectory($storeDirPath . '/' . $request->get('directory_name'));
+		if ($storage->exists($newDirPath)) {
+			$request->session()->flash('upload_warning_messages', 'This directory "' . $newDirName . '" already exists!');
+		} else
+			$storage->makeDirectory($newDirPath);
 		return redirect($this->_referer_request->getPath());
 	}
 

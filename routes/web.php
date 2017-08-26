@@ -62,18 +62,16 @@ Route::group(['prefix' => 'home'], function () {
 	//Route::post('/upload', 'User\UploadController@uploadFiles');
 	Route::post('/{slugs?}', function(Illuminate\Http\Request $request) {
 		$action = $request->get('action');
-		$method = ''; // Just for being hard to get :)
-		switch ($action) {
-			case 'upload-files':
-				$method = 'uploadFiles';
-				break;
-			case 'create-folder':
-				$method = 'makeDirectory';
-				break;
-			default :
-				abort(400, 'You have a bad request!');
-				break;
+		$allowedRequests = array(// prevent unnecessary requests
+			'upload-files' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'uploadFiles', 'params' => array()),
+			'create-folder' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'makeDirectory', 'params' => array()),
+		);
+		// check our request 
+		if (!isset($allowedRequests[$action])) {
+			abort(400, 'You have a bad request!');
 		}
-		return App::call('\App\Http\Controllers\User\UploadController@' . $method);
-	})->where('slugs', '(.*/action)');
+		// store, don't do unnecessary lookups
+		$appCallData = $allowedRequests[$action];
+		return App::call($appCallData['controller'] . '@' . $appCallData['method'], $appCallData['params']);
+	})->where('slugs', '(.*)')->name('home');
 });

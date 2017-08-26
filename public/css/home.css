@@ -1,0 +1,45 @@
+/*
+*	--------------------------
+*		Default values
+*	--------------------------
+*/
+
+.center {
+	text-align: center;
+}
+/*
+*	--------------------------
+*		User Storage Table
+*	--------------------------
+*/
+#userStorageTable .checkItem{
+	padding-top: 16px;
+	padding-bottom: 0px;
+}
+#userStorageTable input[type="checkbox"]{
+	/* Double-sized Checkboxes */
+	-ms-transform: scale(1.2); /* IE */
+	-moz-transform: scale(1.2); /* FF */
+	-webkit-transform: scale(1.2); /* Safari and Chrome */
+	-o-transform: scale(1.2); /* Opera */
+}
+#userStorageTable input[type="checkbox"]:hover{
+	cursor: pointer;
+}
+#userStorageTable .typeIcon{
+	margin-right: 7px;
+	font-size: 27px;
+	color: #337ab7;
+}
+#userStorageTable td.name 
+{
+	font-size: 	18px;
+}
+body #userStorageTable td.name a{
+	color: #333;
+} 
+body #userStorageTable td.name a:hover
+{
+	color: #337ab7;
+	text-decoration: none;
+}
