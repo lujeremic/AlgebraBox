@@ -43,3 +43,24 @@ body #userStorageTable td.name a:hover
 	color: #337ab7;
 	text-decoration: none;
 }
+#newfolderNameLiveEdit{
+	width: 85%;
+}
+#userStorageTable .form-errors{
+	margin-top: 10px;
+}
+.userActionContainer{
+}
+
+/*
+*	-------------------------------
+*		Homepage left side Menu
+*	-------------------------------
+*/
+#mainContent{
+	float:right;
+}
+#homepageLeftSidemenu{
+	float: left;
+	width: 255px;
+}

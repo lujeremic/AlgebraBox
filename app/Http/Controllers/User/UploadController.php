@@ -36,7 +36,9 @@ class UploadController extends Controller {
 			}
 			$value->storeAs($storeDirPath, $value->getClientOriginalName(), 'public');
 		}
-		$request->session()->flash('upload_warning_messages', $noticeMsg);
+		if (strlen($noticeMsg) > 0) {
+			$request->session()->flash('upload_warning_messages', $noticeMsg);
+		}
 		return redirect($this->_referer_request->getPath());
 	}
 
