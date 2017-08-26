@@ -10,7 +10,6 @@
   | to using a Closure or controller method. Build something great!
   |
  */
-
 // Index page
 Route::get('/', ['as' => 'index', 'uses' => 'IndexController@index']);
 
@@ -47,9 +46,9 @@ Route::group(['prefix' => 'admin'], function () {
 	Route::resource('roles', 'Admin\RoleController');
 });
 /* ############# Regular User ############## */
-Route::group(['prefix' => 'home'], function () {
+Route::group(['middleware' => ['web']], function () {
 	// Home page
-	Route::get('/{slugs?}', function(Illuminate\Http\Request $request) {
+	Route::get('home/{slugs?}', function(Illuminate\Http\Request $request) {
 		$controllerPath = '\App\Http\Controllers\User\HomeController';
 		// check if request is file preview
 		$filePreview = $request->input('preview');
@@ -57,10 +56,10 @@ Route::group(['prefix' => 'home'], function () {
 			return App::call($controllerPath . '@filePreview');
 		}
 		return App::call($controllerPath . '@index');
-	})->where('slugs', '(.*)')->name('home');
+	})->where('slugs', '(.*)')->name('home')->middleware('sentinel.auth');
 	// post Upload files
 	//Route::post('/upload', 'User\UploadController@uploadFiles');
-	Route::post('/{slugs?}', function(Illuminate\Http\Request $request) {
+	Route::post('home/{slugs?}', function(Illuminate\Http\Request $request) {
 		$action = $request->get('action');
 		$allowedRequests = array(// prevent unnecessary requests
 			'upload-files' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'uploadFiles', 'params' => array()),
@@ -73,5 +72,6 @@ Route::group(['prefix' => 'home'], function () {
 		// store, don't do unnecessary lookups
 		$appCallData = $allowedRequests[$action];
 		return App::call($appCallData['controller'] . '@' . $appCallData['method'], $appCallData['params']);
-	})->where('slugs', '(.*)')->name('home');
+	})->where('slugs', '(.*)')->middleware('sentinel.auth');
 });
+

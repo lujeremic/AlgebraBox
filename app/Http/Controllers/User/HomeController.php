@@ -20,9 +20,7 @@ class HomeController extends Controller {
 	 * @return void
 	 */
 	public function __construct(Sentinel $sentinel) {
-		$this->middleware('sentinel.auth');
 		$this->sentinel = $sentinel;
-		//$userInterface = new UserInterface();
 	}
 
 	/**

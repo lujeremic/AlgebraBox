@@ -14,7 +14,7 @@
 
 	</div>
 	<div class="col-md-8">
-		<h1>Algebra Box</h1>
+		<a href="/home"><h1>Algebra Box</h1></a>
 		<nav class="breadcrumb">
 			@for($i = 0; $i < $breadcrumb['number_of_slugs']; $i++)
 			@if($breadcrumb['number_of_slugs'] -1  === $i)
