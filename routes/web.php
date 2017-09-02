@@ -64,10 +64,12 @@ Route::group(['middleware' => ['web']], function () {
 		$allowedRequests = array(// prevent unnecessary requests
 			'upload-files' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'uploadFiles', 'params' => array()),
 			'create-folder' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'makeDirectory', 'params' => array()),
+			'rename-file' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'renameFile', 'params' => array()),
+			'delete-files' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'deleteFiles', 'params' => array()),
 		);
 		// check our request 
 		if (!isset($allowedRequests[$action])) {
-			abort(400, 'You have a bad request!');
+			abort(400, 'You have a bad request!', array('location', URL::previous()));
 		}
 		// store, don't do unnecessary lookups
 		$appCallData = $allowedRequests[$action];

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Users;
+namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class MakeDirectoryRequest extends FormRequest {
+class RenameFileRequest extends FormRequest {
 
 	/**
 	 * Determine if the user is authorized to make this request.
@@ -22,7 +22,8 @@ class MakeDirectoryRequest extends FormRequest {
 	 */
 	public function rules() {
 		return [
-			'directory_name' => 'required|max:255|regex:/[\w-\\p{L}\s]+$/u' // allow only letters numbers _ and utf8 letters and space
+			'renamed_file_name' => 'required|max:255', 
+			'renamed_file_path' => 'required|max:255' 
 		];
 	}
 

@@ -1,6 +1,9 @@
 @extends('layouts.index')
 
 @section('title', 'AlgebraBox | The greatest cloud storage')
+@section('homepage-head-metatags')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+@stop
 @section('homepage-css-files')
 <link rel="stylesheet" href="{{ asset('css/font-awesome/css/font-awesome.min.css') }}"></link>
 <link rel="stylesheet" href="{{ asset('css/home.css') }}"></link>
@@ -27,6 +30,9 @@
 			</nav>
 		</div>
 		<div class="col-md-8">
+			@if(Session::has('upload_success_messages'))
+			<div class="alert alert-success"><em> {!! session('upload_success_messages') !!}</em></div>
+			@endif
 			@if(Session::has('upload_warning_messages'))
 			<div class="alert alert-warning"><em> {!! session('upload_warning_messages') !!}</em></div>
 			@endif
@@ -59,7 +65,10 @@
 						<tr>
 							<td class="center checkItem"><input id="checkFile-{{$i + 1}}" type="checkbox" /></td>
 							<td class="name">
-								<a href="{{$user_disk->files[$i]['path']}}">{{$user_disk->files[$i]['name']}}</a>
+								<a href="{{$user_disk->files[$i]['path']}}">
+									<span class="typeIcon"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></span>
+									<span class="file_name">{{$user_disk->files[$i]['name']}}</span>
+								</a>
 							</td>
 							<td class="center"><h4>{{$user_disk->files[$i]['last_modified']}}</h4></td>
 						</tr>
@@ -78,6 +87,7 @@
 					{{ csrf_field() }}
 					<button id="createNewFolder" type="button" class="btn btn-block btn-primary">New folder</button>
 					@if(count($errors->get('directory_name')) > 0)
+					<br />
 					@foreach($errors->get('directory_name') as $errorMsg)
 					<div class="form-errors alert alert-danger">%
 						{{$errorMsg}}
@@ -93,8 +103,8 @@
 					<br />
 					<button id="uploadFiles" type="button" class="btn btn-block btn-primary">Upload Files</button>
 					<input id="showFileManager" style="display: none" type="file" name="files[]" multiple/>
-					<br /><br />
 					@if(count($errors->get('files')) > 0)
+					<br />
 					@foreach($errors->get('files') as $errorMsg)
 					<div class="alert alert-danger">
 						{{$errorMsg}}

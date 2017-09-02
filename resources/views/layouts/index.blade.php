@@ -5,6 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        @yield('homepage-head-metatags')
         <title>@yield('title')</title>
 
         <!-- Bootstrap - Latest compiled and minified CSS -->
@@ -42,15 +43,22 @@
 							</ul>
                         </li>
 						@else
-                        <li><a href="{{ route('auth.login.form') }}">Login</a></li>
-                        <li><a href="{{ route('auth.register.form') }}">Register</a></li>
+						<li><a href="{{ route('auth.login.form') }}">Login</a></li>
+						<li><a href="{{ route('auth.register.form') }}">Register</a></li>
 						@endif
 					</ul>
 				</div><!-- /.navbar-collapse -->
 			</div><!-- /.container-fluid -->
 		</nav>
+		@if (Sentinel::check())
 		@include('notifications')
 		@yield('content')
+		@else
+		<div class="container">
+			@include('notifications')
+			@yield('content')
+		</div>
+		@endif
 
         <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>

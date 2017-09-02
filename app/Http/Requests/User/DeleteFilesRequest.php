@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Users;
+namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UploadRequest extends FormRequest {
+class DeleteFilesRequest extends FormRequest {
 
 	/**
 	 * Determine if the user is authorized to make this request.
@@ -12,7 +12,6 @@ class UploadRequest extends FormRequest {
 	 * @return bool
 	 */
 	public function authorize() {
-		// user is being authorized from home controller
 		return true;
 	}
 
@@ -23,7 +22,7 @@ class UploadRequest extends FormRequest {
 	 */
 	public function rules() {
 		return [
-			'files' => 'required'
+				//
 		];
 	}
 

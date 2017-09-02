@@ -73,7 +73,7 @@ class HomeController extends Controller {
 			$filePath = $files[$i];
 			$filePathSlugs = explode('/', $filePath);
 			$file = array_pop($filePathSlugs);
-			$fileName = pathinfo($file, PATHINFO_FILENAME);
+			//$fileName = pathinfo($file, PATHINFO_FILENAME); // don't need it for now !
 			$lastModified = $storageDisk->lastModified($filePath);
 			$viewData['user_disk']->files[$i] = array('path' => $request->getRelativeUriForPath($request->getRequestUri() . '/' . $file), 'name' => $file, 'last_modified' => Carbon::createFromTimestamp($lastModified)->toDateTimeString());
 		}

@@ -51,6 +51,18 @@ body #userStorageTable td.name a:hover
 }
 .userActionContainer{
 }
+.hiddenActions {
+	margin-top: 20px;
+	cursor: pointer;
+	color: #337ab7;
+	font-size: 18px;
+	width: 100%;
+    display: block;
+    text-align: left;
+}
+.hiddenActions i{
+	margin-right: 10px;
+}
 
 /*
 *	-------------------------------
@@ -62,5 +74,5 @@ body #userStorageTable td.name a:hover
 }
 #homepageLeftSidemenu{
 	float: left;
-	width: 255px;
+	width: 200px;
 }
