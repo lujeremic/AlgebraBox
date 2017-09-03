@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="{{ asset('css/home.css') }}"></link>
 @stop
 @section('homepage-js-files')
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <script src="{{ asset('js/homepage.js') }}"></script>
 <script src="{{ asset('js/stickyKit.js') }}"></script>
 @stop

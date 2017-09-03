@@ -242,7 +242,7 @@ jQuery(function () {
 			}
 			if (totalCheckedFiles === 0) {
 				// remove delte files form
-				jQuery('#DFForm').remove();
+				jQuery('#DFForm,#CFForm').remove();
 				// show new folder button
 				createNewDirForm.show();
 			} else {
