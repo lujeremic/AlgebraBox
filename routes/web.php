@@ -66,6 +66,7 @@ Route::group(['middleware' => ['web']], function () {
 			'create-folder' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'makeDirectory', 'params' => array()),
 			'rename-file' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'renameFile', 'params' => array()),
 			'delete-files' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'deleteFiles', 'params' => array()),
+			'copy-files' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'copyFiles', 'params' => array()),
 		);
 		// check our request 
 		if (!isset($allowedRequests[$action])) {

@@ -50,6 +50,7 @@ body #userStorageTable td.name a:hover
 	margin-top: 10px;
 }
 .userActionContainer{
+	width: 175px;
 }
 .hiddenActions {
 	margin-top: 20px;
@@ -75,4 +76,28 @@ body #userStorageTable td.name a:hover
 #homepageLeftSidemenu{
 	float: left;
 	width: 200px;
+}
+
+
+/*
+*	---------------------------
+*		Responsive css
+*	---------------------------
+*/
+@media only screen and  (min-width: 1055px){
+	.userActionContainer{
+		width: 175px;
+	}
+}
+
+@media only screen and  (min-width: 768px ) and (max-width: 1055px){
+
+	.userActionContainer{
+		width: 110px;
+	}
+}
+@media only screen and  (max-width: 768px){
+	.userActionContainer{
+		width: 100%;
+	}
 }

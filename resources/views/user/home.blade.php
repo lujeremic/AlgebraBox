@@ -10,6 +10,7 @@
 @stop
 @section('homepage-js-files')
 <script src="{{ asset('js/homepage.js') }}"></script>
+<script src="{{ asset('js/stickyKit.js') }}"></script>
 @stop
 @section('content')
 <div id="homepageLeftSidemenu">
@@ -29,7 +30,7 @@
 				@endfor
 			</nav>
 		</div>
-		<div class="col-md-8">
+		<div class="col-sm-9 col-md-9">
 			@if(Session::has('upload_success_messages'))
 			<div class="alert alert-success"><em> {!! session('upload_success_messages') !!}</em></div>
 			@endif
@@ -39,6 +40,13 @@
 			@if(Session::has('dangerMsg'))
 			<div class="alert alert-danger"><em> {!! session('dangerMsg') !!}</em></div>
 			@endif
+			@foreach($errors->getMessages() as $errorMsg)
+			@for($i = 0; $i < count($errorMsg); $i++)
+			<div class="alert alert-danger">
+				{{$errorMsg[$i]}}
+			</div>
+			@endfor
+			@endforeach
 			@if(count($user_disk))
 			<div class="table-responsive">
 				<table id="userStorageTable" class="table table-borderless">
@@ -81,8 +89,8 @@
 			@endif
 
 		</div>
-		<div class="col-md-3">
-			<div class="userActionContainer">
+		<div class="col-sm-3 col-md-3">
+			<div id="userActionContainer">
 				<form id="CNDForm" action="home" method="post" enctype="multipart/form-data">
 					{{ csrf_field() }}
 					<button id="createNewFolder" type="button" class="btn btn-block btn-primary">New folder</button>
@@ -113,6 +121,15 @@
 					@endif
 					<input type="hidden" name="action" value="upload-files"/>
 				</form>
+				<div id="renameFileContainer">
+
+				</div>
+				<div id="copyFilesContainer">
+
+				</div>
+				<div id="deleteFilesContainer">
+
+				</div>
 			</div>
 		</div>
 	</div>

@@ -26,4 +26,10 @@ class MakeDirectoryRequest extends FormRequest {
 		];
 	}
 
+	public function messages() {
+		return [
+			'directory_name.regex' => 'Invalid directory name: "' . $this->get('renamed_file_name') . '", allowed characters: a-ž, A-ž, space, _ and 0-9',
+		];
+	}
+
 }

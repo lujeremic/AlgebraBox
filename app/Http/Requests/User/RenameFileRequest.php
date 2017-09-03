@@ -22,8 +22,15 @@ class RenameFileRequest extends FormRequest {
 	 */
 	public function rules() {
 		return [
-			'renamed_file_name' => 'required|max:255', 
-			'renamed_file_path' => 'required|max:255' 
+			'old_file_name' => 'required|max:255',
+			'renamed_file_name' => 'required|max:255|regex:/^[\w\\p{L}\s]+$/u',
+			'renamed_file_path' => 'required|max:255'
+		];
+	}
+
+	public function messages() {
+		return [
+			'renamed_file_name.regex' => 'Invalid file name: "' . $this->get('renamed_file_name') . '", allowed characters: a-ž, A-ž, space, _ and 0-9',
 		];
 	}
 

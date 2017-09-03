@@ -39,6 +39,7 @@ var renameDirectory = function (params, active) {
 		}
 		return false;
 	}
+	params.renamed_file_data.form_inputs.old_file_name.attr('value', params.renamed_file_data.checkedFile.file_name.text());
 	params.renamed_file_data.form.submit();
 };
 
@@ -66,6 +67,7 @@ var addRenameFileForm = function (target, fileID) {
 		target.append('<form id="RFForm" action="' + location.pathname + '" method="POST">\n\
 						<div id="renameFile" class="hiddenActions" data-id="' + fileID + '"><i class="fa fa-pencil" aria-hidden="true"></i>Rename File</div>\n\
 						<div class="form-errors renameFolder alert alert-danger" style="display: none">The directory name field is required.</div>\n\
+						<input type="hidden" name="old_file_name" value=""/>\n\
 						<input type="hidden" name="renamed_file_name" value=""/>\n\
 						<input type="hidden" name="renamed_file_path" value=""/>\n\
 						<input type="hidden" name="action" value="rename-file"/>\n\
@@ -84,6 +86,21 @@ var addDeleteFilesForm = function (target, fileID) {
 						<div class="form-errors renameFolder alert alert-danger" style="display: none">Please select file or files to delete.</div>\n\
 						<input type="hidden" name="delete_files" value=""/>\n\
 						<input type="hidden" name="action" value="delete-files"/>\n\
+						<input type="hidden" name="_token" value="' + csrf + '"/>\n\
+					  </form>');
+	return deffered.resolve(1).promise();
+};
+var addCopyFilesForm = function (target, fileID) {
+	var deffered = jQuery.Deferred();
+	var deleteButton = jQuery('#copyFiles');
+	if (deleteButton.length) {
+		deleteButton.attr('data-id', fileID);
+	} else
+		target.append('<form id="CFForm" action="' + location.pathname + '" method="POST">\n\
+						<div id="copyFiles" class="hiddenActions" data-id="' + fileID + '"><i class="fa fa-files-o" aria-hidden="true"></i>Copy</div>\n\
+						<div class="form-errors copyFolder alert alert-danger" style="display: none">Please select file or files to copy.</div>\n\
+						<input type="hidden" name="copy_files" value=""/>\n\
+						<input type="hidden" name="action" value="copy-files"/>\n\
 						<input type="hidden" name="_token" value="' + csrf + '"/>\n\
 					  </form>');
 	return deffered.resolve(1).promise();
@@ -122,7 +139,10 @@ var unbindCustomFormSubmitionEvent = function () {
 	jQuery(document).off('click.customFormSubmition');
 };
 jQuery(function () {
-
+	var userActionForms = jQuery('#userActionContainer');
+	var renameFileContainer = jQuery('#renameFileContainer');
+	var copyFilesContainer = jQuery('#copyFilesContainer');
+	var deleteFilesContainer = jQuery('#deleteFilesContainer');
 	var createNewDirForm = jQuery('#CNDForm');
 	var uploadFilesForm = jQuery('#UFForm');
 	var leftSideMenu = jQuery('#homepageLeftSidemenu');
@@ -139,8 +159,13 @@ jQuery(function () {
 	var formErrors = {
 		createFolder: jQuery('.form-errors.createFolder')
 	};
+
 	// set main content widt depending on left side menu outer width
 	mainContent.width(windowWidth - outerWidthLeftSideMenu);
+	if (windowWidth >= 768) {
+		userActionForms.parent().height(userStorageTable.height());
+		userActionForms.stick_in_parent({offset_top: 30});
+	}
 	// resize screen 
 	jQuery(window).resize(function (e) {
 		var active = jQuery(this);
@@ -152,6 +177,7 @@ jQuery(function () {
 		windowWidth = active.width();
 		// small screen
 		if (windowWidth < 768) {
+			userActionForms.parent().trigger("sticky_kit:detach").css({height: 'auto'});
 			if (outerWidthLeftSideMenu >= 70) {
 				outerWidthLeftSideMenu = outerWidthLeftSideMenu - 50;
 			}
@@ -159,6 +185,9 @@ jQuery(function () {
 		}
 		// medium screen
 		if (windowWidth >= 768) {
+			// add sticky
+			userActionForms.parent().height(userStorageTable.height());
+			userActionForms.stick_in_parent({offset_top: 30});
 			if (outerWidthLeftSideMenu <= outerWidthLeftSideMenuInitialWidth) {
 				outerWidthLeftSideMenu = outerWidthLeftSideMenu + 50;
 			}
@@ -191,9 +220,10 @@ jQuery(function () {
 			var totalCheckedFiles = countAndStoreCheckedFiles(jQuery('input[id^=checkDir-],input[id^=checkFile-]'));
 
 			if (totalCheckedFiles === 1) {
-				addRenameFileForm(jQuery('.userActionContainer'), checkedRadioButton.attr('id')).done(function () {
+				addRenameFileForm(renameFileContainer, checkedRadioButton.attr('id')).done(function () {
 					renameFileData.form = jQuery('#RFForm');
 					renameFileData.form_inputs = {
+						old_file_name: renameFileData.form.find('input[name="old_file_name"]'),
 						renamed_file_name: renameFileData.form.find('input[name="renamed_file_name"]'),
 						renamed_file_path: renameFileData.form.find('input[name="renamed_file_path"]')
 					};
@@ -216,9 +246,8 @@ jQuery(function () {
 				// show new folder button
 				createNewDirForm.show();
 			} else {
-				addDeleteFilesForm(jQuery('.userActionContainer'), checkedRadioButton.attr('id')).done(function () {
-
-				});
+				addCopyFilesForm(copyFilesContainer, checkedRadioButton.attr('id')).done(function () {});
+				addDeleteFilesForm(deleteFilesContainer, checkedRadioButton.attr('id')).done(function () {});
 				createNewDirForm.hide();
 			}
 		}
@@ -304,7 +333,7 @@ jQuery(function () {
 				}
 		);
 	});
-	jQuery('body').on('click keypress', '#new_file_name', function (e) {
+	jQuery('body').on('click keyup', '#new_file_name', function (e) {
 		if (e.type === 'click') {
 			e.preventDefault();
 		}
@@ -328,6 +357,20 @@ jQuery(function () {
 		if (listOfFilesToDelete.length > 0) {
 			jQuery('input[name="delete_files"]').attr('value', JSON.stringify(listOfFilesToDelete));
 			jQuery('#DFForm').submit();
+		}
+	});
+	// copy files
+	jQuery('body').on('click', '#copyFiles', function (e) {
+		e.preventDefault();
+		var active = jQuery(this);
+		var listOfFilesToCopy = [];
+		jQuery.each(checkedItems, function (i, v) {
+			var fileName = jQuery(this).closest('tr').find('.name .file_name').text();
+			listOfFilesToCopy.push(fileName);
+		});
+		if (listOfFilesToCopy.length > 0) {
+			jQuery('input[name="copy_files"]').attr('value', JSON.stringify(listOfFilesToCopy));
+			jQuery('#CFForm').submit();
 		}
 	});
 });

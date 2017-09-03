@@ -9,6 +9,7 @@ use App\Models\UserRoot as UserDirectory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Traits\HtmlUtilitiesTrait as HtmlUtilities;
+use Illuminate\Support\Facades\File;
 
 class HomeController extends Controller {
 
@@ -35,16 +36,18 @@ class HomeController extends Controller {
 		$pathSegments = $urlSegments;
 		// check num of segments, home will be always 0 index 
 		$numOfSegments = count($urlSegments);
-		$requestedDirectoryName = $pathSegments[$numOfSegments - 1];
 		$userRootDirName = UserDirectory::getUserDirectoryName($this->sentinel->getUser()->getUserId());
+		$requestedDirectoryName = str_replace('home', $userRootDirName, $pathSegments[$numOfSegments - 1]);
+		$storageRequestedPath = str_replace('home', $userRootDirName, $request->path());
 		// replace home with users root directory name
 		$pathSegments[0] = str_replace('home', $userRootDirName, $pathSegments[0]);
 		if ($numOfSegments === 1) {
 			$requestedDirectoryPath = '/' . $pathSegments[0] . '/';
 		} else
 			$requestedDirectoryPath = implode('/', $pathSegments) . '/';
+		$allDirectories = $storageDisk->allDirectories();
 		// check requested directory path exists or not
-		if (!$storageDisk->exists($requestedDirectoryPath)) {
+		if (!in_array($storageRequestedPath, $allDirectories)) {
 			// set message!
 			$request->session()->flash('dangerMsg', 'Requested directory "' . $requestedDirectoryName . '" doesn\'t exist!');
 			return redirect('home');
