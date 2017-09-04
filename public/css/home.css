@@ -1,0 +1,117 @@
+/*
+*	--------------------------
+*		Default values
+*	--------------------------
+*/
+
+.center {
+	text-align: center;
+}
+/*
+*	--------------------------
+*		User Storage Table
+*	--------------------------
+*/
+#userStorageTable .checkItem{
+	padding-top: 16px;
+	padding-bottom: 0px;
+}
+#userStorageTable input[type="checkbox"]{
+	/* Double-sized Checkboxes */
+	-ms-transform: scale(1.2); /* IE */
+	-moz-transform: scale(1.2); /* FF */
+	-webkit-transform: scale(1.2); /* Safari and Chrome */
+	-o-transform: scale(1.2); /* Opera */
+}
+#userStorageTable input[type="checkbox"]:hover{
+	cursor: pointer;
+}
+#userStorageTable .typeIcon{
+	margin-right: 7px;
+	font-size: 27px;
+	color: #337ab7;
+}
+#userStorageTable td.name 
+{
+	font-size: 	18px;
+}
+body #userStorageTable td.name a{
+	color: #333;
+} 
+body #userStorageTable td.name a:hover
+{
+	color: #337ab7;
+	text-decoration: none;
+}
+#newfolderNameLiveEdit{
+	width: 85%;
+}
+#userStorageTable .form-errors{
+	margin-top: 10px;
+}
+.userActionContainer{
+	width: 175px;
+}
+.hiddenActions {
+	margin-top: 20px;
+	cursor: pointer;
+	color: #337ab7;
+	font-size: 18px;
+	width: 100%;
+    display: block;
+    text-align: left;
+}
+.hiddenActions i{
+	margin-right: 10px;
+}
+
+/*
+*	-------------------------------
+*		Homepage left side Menu
+*	-------------------------------
+*/
+#mainContent{
+	float:right;
+}
+#homepageLeftSidemenu{
+	float: left;
+	width: 200px;
+}
+/*
+*	-------------------------------
+*		Move files modal (Dir manager)
+*	-------------------------------
+*/
+.dirManager{
+	cursor: pointer;
+	color: #337ab7;
+	list-style: none;
+}
+.dirManager li .menuItemContainer.selected{
+	background: rgba(130, 179, 241, 0.4);
+}
+
+
+
+/*
+*	---------------------------
+*		Responsive css
+*	---------------------------
+*/
+@media only screen and  (min-width: 1055px){
+	.userActionContainer{
+		width: 175px;
+	}
+}
+
+@media only screen and  (min-width: 768px ) and (max-width: 1055px){
+
+	.userActionContainer{
+		width: 110px;
+	}
+}
+@media only screen and  (max-width: 768px){
+	.userActionContainer{
+		width: 100%;
+	}
+}
