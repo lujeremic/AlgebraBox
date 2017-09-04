@@ -205,6 +205,26 @@ class UploadController extends Controller {
 		return redirect($this->_referer_request->getPath());
 	}
 
+	public function downloadFiles(Request $request) {
+		$downloadFile = $request->get('download_files');
+		$userRootDirName = userRootDirectory::getUserDirectoryName($request->user()->id);
+		// user dir is missing
+		if (is_null($userRootDirName)) {
+			abort(404, 'Seems like your main user directory is missing, please contact support!');
+		}
+		$storageDisk = Storage::disk('public');
+		$storeDirPath = $this->getUsersDirectoryPathFromRequestUrl($userRootDirName);
+		$filePath = str_replace(array('home', '?preview='), array($userRootDirName, '/'), $downloadFile);
+		$fileName = basename($filePath);
+		if (!$storageDisk->exists($filePath)) {
+			$request->session()->flash('upload_warning_messages', "Can\'t download, File: '" . $fileName . "' doesn\'t exist!<br>");
+			return redirect($this->_referer_request->getPath());
+		}
+		$storageDiskPathPrefix = $storageDisk->getAdapter()->getPathPrefix();
+		return response()->download($storageDiskPathPrefix . ltrim($filePath, '/'), $fileName, array(
+		));
+	}
+
 	public function copyFiles(CopyFilesRequest $request) {
 		$copyFileList = json_decode($request->get('copy_files'));
 		$numOfFilesToHandle = is_array($copyFileList) ? count($copyFileList) : 0;
@@ -247,7 +267,7 @@ class UploadController extends Controller {
 
 	public function moveFiles(Request $request) {
 		$moveFileList = json_decode($request->get('move_files'));
-		$moveFilesToDestionationLink = urldecode(filter_var($request->get('move_destination'), FILTER_SANITIZE_URL));
+		$moveFilesToDestionationLink = urldecode($request->get('move_destination'));
 		$numOfFilesToHandle = is_array($moveFileList) ? count($moveFileList) : 0;
 		if (!$numOfFilesToHandle) {
 			$request->session()->flash('upload_warning_messages', "Nothing to move! <br>");
@@ -272,7 +292,7 @@ class UploadController extends Controller {
 		$allFilesInDestionationDirectory = $storageDisk->files($moveFilesToDestionationPath);
 		$checkedFilesToMove = array();
 		for ($i = 0; $i < $numOfFilesToHandle; $i++) {
-			$fileToMove = str_replace('home', $userRootDirName, urldecode(filter_var($moveFileList[$i], FILTER_SANITIZE_URL)));
+			$fileToMove = str_replace(array('home', '?preview='), array($userRootDirName, '/'), urldecode($moveFileList[$i]));
 			$filePathSlugs = explode('/', $fileToMove);
 			array_pop($filePathSlugs);
 			$parentPath = implode('/', $filePathSlugs);
@@ -280,11 +300,11 @@ class UploadController extends Controller {
 				continue;
 			}
 			// can't move in it's self
-			if (in_array($fileToMove, $allDirectoriesInDestionationDirectory) || 
-					in_array($fileToMove, $allFilesInDestionationDirectory) || 
+			if (in_array($fileToMove, $allDirectoriesInDestionationDirectory) ||
+					in_array($fileToMove, $allFilesInDestionationDirectory) ||
 					$moveFilesToDestionationPath === $fileToMove ||
-					$moveFilesToDestionationPath === $parentPath 
-					) {
+					$moveFilesToDestionationPath === $parentPath
+			) {
 				$request->session()->flash('upload_warning_messages', "Can\'t move in it\'s self!<br>");
 				return redirect($this->_referer_request->getPath());
 			}
@@ -301,10 +321,10 @@ class UploadController extends Controller {
 			$file = $checkedFilesToMove[$i];
 			$fileName = basename($file);
 			try {
-				$msg['success'] [] = 'File ' . $fileName . ' was moved to directory ' . $destionationDirectoryName . '<br>';
+				$msg['success'] [] = 'File ' . $fileName . ' was moved to directory ' . str_replace($userRootDirName, 'home', $destionationDirectoryName) . '<br>';
 				$storageDisk->move($file, $moveFilesToDestionationPath . '/' . $fileName);
 			} catch (\Exception $ex) {
-				$request->session()->flash('upload_warning_messages', "" . $ex->getMessage() . "<br>");
+				$request->session()->flash('upload_warning_messages', "Can\'t move in it\'s self!<br>");
 				return redirect($this->_referer_request->getPath());
 			}
 		}
@@ -320,7 +340,7 @@ class UploadController extends Controller {
 			'errors' => array(),
 			'status' => 0,
 		);
-		$parentLink = urldecode(filter_var($request->get('parent_item_link'), FILTER_SANITIZE_URL));
+		$parentLink = urldecode($request->get('parent_item_link'));
 		if (!$parentLink) {
 			$response['msg'][] = 'Unknow menu item!';
 			return response()->json($response);

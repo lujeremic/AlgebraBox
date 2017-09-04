@@ -38,7 +38,7 @@ class HomeController extends Controller {
 		$numOfSegments = count($urlSegments);
 		$userRootDirName = UserDirectory::getUserDirectoryName($this->sentinel->getUser()->getUserId());
 		$requestedDirectoryName = str_replace('home', $userRootDirName, $pathSegments[$numOfSegments - 1]);
-		$storageRequestedPath = str_replace('home', $userRootDirName, $request->path());
+		$storageRequestedPath = urldecode(str_replace('home', $userRootDirName, $request->path()));
 		// replace home with users root directory name
 		$pathSegments[0] = str_replace('home', $userRootDirName, $pathSegments[0]);
 		if ($numOfSegments === 1) {
@@ -64,7 +64,7 @@ class HomeController extends Controller {
 				$dirPathSlugs = explode('/', $directoryPath);
 				$dirName = array_pop($dirPathSlugs);
 				$lastModified = $storageDisk->lastModified($directoryPath);
-				$viewData['user_disk']->directories[$i] = array('path' => ltrim($request->getRelativeUriForPath($request->getRequestUri() . '/' . $dirName, '/')), 'name' => $dirName, 'last_modified' => Carbon::createFromTimestamp($lastModified)->toDateTimeString());
+				$viewData['user_disk']->directories[$i] = array('link' => '/' . str_replace($userRootDirName, 'home', $directoryPath), 'name' => $dirName, 'last_modified' => Carbon::createFromTimestamp($lastModified)->toDateTimeString());
 			}
 		}
 		// set files data 
@@ -74,11 +74,15 @@ class HomeController extends Controller {
 		$viewData['user_disk']->files = array();
 		for ($i = 0; $i < $numOfFiles; $i++) {
 			$filePath = $files[$i];
+			$fileName = basename($filePath);
 			$filePathSlugs = explode('/', $filePath);
-			$file = array_pop($filePathSlugs);
+			array_pop($filePathSlugs);
+			$previewParam = '?preview=' . $fileName;
+			$fileLink = implode('/', $filePathSlugs) . $previewParam;
+			$filePathSlugs[] = $previewParam; // add preview param
 			//$fileName = pathinfo($file, PATHINFO_FILENAME); // don't need it for now !
 			$lastModified = $storageDisk->lastModified($filePath);
-			$viewData['user_disk']->files[$i] = array('path' => $request->getRelativeUriForPath($request->getRequestUri() . '/' . $file), 'name' => $file, 'last_modified' => Carbon::createFromTimestamp($lastModified)->toDateTimeString());
+			$viewData['user_disk']->files[$i] = array('link' => '/' . str_replace($userRootDirName, 'home', $fileLink), 'name' => $fileName, 'last_modified' => Carbon::createFromTimestamp($lastModified)->toDateTimeString());
 		}
 		// create breadcrumb
 		$viewData['breadcrumb'] = HtmlUtilities::createBreadCrumb($request->getPathInfo());
@@ -87,12 +91,16 @@ class HomeController extends Controller {
 		$numOfAllBaseDirectories = count($getAllBaseDirectories);
 		$viewData['directory_manager'] = new \stdClass();
 		$viewData['directory_manager']->total_menu_items = $numOfAllBaseDirectories;
+		$viewData['directory_manager']->menu_items[0]['name'] = 'Home';
+		$viewData['directory_manager']->menu_items[0]['link'] = 'home';
+		$viewData['directory_manager']->menu_items[0]['total_menu_items'] = count($storageDisk->directories($userRootDirName));
 		for ($i = 0; $i < $numOfAllBaseDirectories; $i++) {
 			$directoryRealPath = $getAllBaseDirectories[$i];
+			$orderAfterHome = $i + 1;
 			$directoryLinkPath = str_replace($userRootDirName, 'home', $directoryRealPath);
-			$viewData['directory_manager']->menu_items[$i]['name'] = basename($directoryLinkPath);
-			$viewData['directory_manager']->menu_items[$i]['link'] = $directoryLinkPath;
-			$viewData['directory_manager']->menu_items[$i]['total_menu_items'] =count($storageDisk->directories($directoryRealPath));
+			$viewData['directory_manager']->menu_items[$orderAfterHome]['name'] = basename($directoryLinkPath);
+			$viewData['directory_manager']->menu_items[$orderAfterHome]['link'] = $directoryLinkPath;
+			$viewData['directory_manager']->menu_items[$orderAfterHome]['total_menu_items'] = count($storageDisk->directories($directoryRealPath));
 		}
 		//die(dump($viewData['directory_manager']));
 		return view('user.home', $viewData);

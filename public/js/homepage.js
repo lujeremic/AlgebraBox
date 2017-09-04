@@ -35,7 +35,7 @@ var renameDirectory = function (params, active) {
 		params.input_renamed_folder_name.remove();
 		params.renamed_file_data.form.remove();
 		if (countAndStoreCheckedFiles(jQuery('input[id^=checkFile-],input[id^=checkDir-]')) === 0) {
-			jQuery('#DFForm').remove();
+			jQuery('#DelFForm').remove();
 		}
 		return false;
 	}
@@ -81,7 +81,7 @@ var addDeleteFilesForm = function (target, fileID) {
 	if (deleteButton.length) {
 		deleteButton.attr('data-id', fileID);
 	} else
-		target.append('<form id="DFForm" action="' + location.pathname + '" method="POST">\n\
+		target.append('<form id="DelFForm" action="' + location.pathname + '" method="POST">\n\
 						<div id="deleteFiles" class="hiddenActions" data-id="' + fileID + '"><i class="fa fa-trash-o" aria-hidden="true"></i>Delete</div>\n\
 						<div class="form-errors renameFolder alert alert-danger" style="display: none">Please select file or files to delete.</div>\n\
 						<input type="hidden" name="delete_files" value=""/>\n\
@@ -117,6 +117,21 @@ var addMoveFilesForm = function (target, fileID) {
 						<input type="hidden" name="move_files" value=""/>\n\
 						<input type="hidden" name="move_destination" value=""/>\n\
 						<input type="hidden" name="action" value="move-files"/>\n\
+						<input type="hidden" name="_token" value="' + csrf + '"/>\n\
+					  </form>');
+	return deffered.resolve(1).promise();
+};
+var addDownloadFilesForm = function (target, fileID) {
+	var deffered = jQuery.Deferred();
+	var downloadButton = jQuery('#downloadFiles');
+	if (downloadButton.length) {
+		downloadButton.attr('data-id', fileID);
+	} else
+		target.append('<form id="DFForm" action="' + location.pathname + '" method="POST">\n\
+						<div id="downloadFiles" class="hiddenActions" data-id="' + fileID + '"><i class="fa fa-download" aria-hidden="true"></i>Download</div>\n\
+						<div class="form-errors copyFolder alert alert-danger" style="display: none">Please select files for download.</div>\n\
+						<input type="hidden" name="download_files" value=""/>\n\
+						<input type="hidden" name="action" value="download-files"/>\n\
 						<input type="hidden" name="_token" value="' + csrf + '"/>\n\
 					  </form>');
 	return deffered.resolve(1).promise();
@@ -161,6 +176,7 @@ jQuery(function () {
 	var moveFilesModalButton = jQuery('#openMoveFilesModal');
 	var triggerMoveFilesForm = jQuery('#triggerMoveFilesForm');
 	var moveFilesModal = jQuery('#moveFilesModal');
+	var downloadFilesContainer = jQuery('#downloadFilesContainer');
 	var copyFilesContainer = jQuery('#copyFilesContainer');
 	var deleteFilesContainer = jQuery('#deleteFilesContainer');
 	var createNewDirForm = jQuery('#CNDForm');
@@ -241,6 +257,15 @@ jQuery(function () {
 			var totalCheckedFiles = countAndStoreCheckedFiles(jQuery('input[id^=checkDir-],input[id^=checkFile-]'));
 
 			if (totalCheckedFiles === 1) {
+				// check for download
+				var downloadFiles = true;
+				var slug = checkedItems[0].attr('id').split('-');
+				if (slug[0] === 'checkDir') {
+					downloadFiles = false;
+				}
+				if (downloadFiles) {
+					addDownloadFilesForm(downloadFilesContainer, checkedRadioButton.attr('id')).done(function () {});
+				}
 				addRenameFileForm(renameFileContainer, checkedRadioButton.attr('id')).done(function () {
 					renameFileData.form = jQuery('#RFForm');
 					renameFileData.form_inputs = {
@@ -255,25 +280,25 @@ jQuery(function () {
 						file_path: tableRow.find('.name a')
 					};
 					// set form path
-					renameFileData.form_inputs.renamed_file_path.attr('value', encodeURIComponent(renameFileData.checkedFile.file_path.attr('href')));
+					renameFileData.form_inputs.renamed_file_path.attr('value', renameFileData.checkedFile.file_path.attr('href'));
 				});
 
 			} else {
-				jQuery('#RFForm').remove();
-			}
-			if (totalCheckedFiles === 0) {
-				// remove delte files form
-				jQuery('#DFForm,#CFForm,#MFForm').remove();
-				// show new folder button
-				createNewDirForm.show();
-			} else {
-				addCopyFilesForm(copyFilesContainer, checkedRadioButton.attr('id')).done(function () {});
-				addDeleteFilesForm(deleteFilesContainer, checkedRadioButton.attr('id')).done(function () {});
-				addMoveFilesForm(moveFilesContainer, checkedRadioButton.attr('id')).done(function () {});
-				createNewDirForm.hide();
+				jQuery('#RFForm,#DFForm').remove();
 			}
 		}
-		countAndStoreCheckedFiles(jQuery('input[id^=checkDir-],input[id^=checkFile-]'));
+		totalCheckedFiles = countAndStoreCheckedFiles(jQuery('input[id^=checkDir-],input[id^=checkFile-]'));
+		if (totalCheckedFiles === 0) {
+			// remove delte files form
+			jQuery('#DelFForm,#CFForm,#MFForm').remove();
+			// show new folder button
+			createNewDirForm.show();
+		} else {
+			addCopyFilesForm(copyFilesContainer, checkedRadioButton.attr('id')).done(function () {});
+			addDeleteFilesForm(deleteFilesContainer, checkedRadioButton.attr('id')).done(function () {});
+			addMoveFilesForm(moveFilesContainer, checkedRadioButton.attr('id')).done(function () {});
+			createNewDirForm.hide();
+		}
 	});
 	// New folder (table row ), place at begining 
 	jQuery('body').on('click', '#createNewFolder', function (e) {
@@ -378,8 +403,16 @@ jQuery(function () {
 		});
 		if (listOfFilesToDelete.length > 0) {
 			jQuery('input[name="delete_files"]').attr('value', JSON.stringify(listOfFilesToDelete));
-			jQuery('#DFForm').submit();
+			jQuery('#DelFForm').submit();
 		}
+	});
+	// Download files
+	jQuery('body').on('click', '#downloadFiles', function (e) {
+		e.preventDefault();
+		var active = jQuery(this);
+		var fileName = checkedItems[0].closest('tr').find('.name a').attr('href');
+		jQuery('input[name="download_files"]').attr('value', fileName);
+		jQuery('#DFForm').submit();
 	});
 	// copy files
 	jQuery('body').on('click', '#copyFiles', function (e) {
@@ -401,8 +434,8 @@ jQuery(function () {
 		var active = jQuery(this);
 		var listOfFilesToMove = [];
 		jQuery.each(checkedItems, function (i, v) {
-			var fileLink = encodeURIComponent('home/' + jQuery(this).closest('tr').find('.name a').attr('href'));
-			listOfFilesToMove.push(fileLink);
+			var path = jQuery(this).closest('tr').find('.name a').attr('href');
+			listOfFilesToMove.push(path);
 		});
 		if (listOfFilesToMove.length > 0) {
 			jQuery('input[name="move_files"]').attr('value', JSON.stringify(listOfFilesToMove));
@@ -440,7 +473,7 @@ jQuery(function () {
 			}
 		});
 		var formData = {
-			parent_item_link: encodeURIComponent(parentLink),
+			parent_item_link: parentLink,
 			action: 'DM-LoadMoreMenuItems'
 		};
 		var ajaxResult = jQuery.ajax({
@@ -468,7 +501,7 @@ jQuery(function () {
 		e.preventDefault();
 		var active = jQuery(this);
 		var currentSelectedDir = jQuery('#userDirScheme .menuItemContainer.selected');
-		var path = encodeURIComponent(currentSelectedDir.closest('li').attr('data-link'));
+		var path = currentSelectedDir.closest('li').attr('data-link');
 		var filesToMove = jQuery.parseJSON(jQuery('#MFForm input[name="move_files"]').val());
 		var canMove = true; // stupid solution in hurry !!!
 		jQuery.each(filesToMove, function (i, v) {

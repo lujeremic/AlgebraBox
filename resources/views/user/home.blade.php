@@ -62,7 +62,7 @@
 						<tr>
 							<td class="center checkItem"><input id="checkDir-{{$i + 1}}" type="checkbox" /></td>
 							<td class="name">
-								<a href="{{$user_disk->directories[$i]['path']}}">
+								<a href="{{$user_disk->directories[$i]['link']}}">
 									<span class="typeIcon"><i class="fa fa-folder-o" aria-hidden="true"></i></span>
 									<span class="file_name">{{$user_disk->directories[$i]['name']}}</span></a>
 							</td>
@@ -73,7 +73,7 @@
 						<tr>
 							<td class="center checkItem"><input id="checkFile-{{$i + 1}}" type="checkbox" /></td>
 							<td class="name">
-								<a href="{{$user_disk->files[$i]['path']}}">
+								<a href="{{$user_disk->files[$i]['link']}}">
 									<span class="typeIcon"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></span>
 									<span class="file_name">{{$user_disk->files[$i]['name']}}</span>
 								</a>
@@ -99,10 +99,10 @@
 						<div class="modal-body">
 							<div class="table-responsive">
 								<ul id="userDirScheme" class="dirManager">
-									@for($i = 0; $i< $directory_manager->total_menu_items ; $i++)
+									@for($i = 0; $i< $directory_manager->total_menu_items + 1; $i++)
 									<li data-link="{{$directory_manager->menu_items[$i]['link']}}">
 										<div class="menuItemContainer">
-											@if($directory_manager->menu_items[$i]['total_menu_items'] > 0)
+											@if($i > 0 && $directory_manager->menu_items[$i]['total_menu_items'] > 0)
 											<span id="menuItemSubDirectories-{{$i + 1}}"><i class="fa fa-caret-right"></i></span>
 											@endif
 											<span class="typeIcon"><i class="fa fa-folder-o" aria-hidden="true"></i></span>
@@ -153,6 +153,9 @@
 					@endif
 					<input type="hidden" name="action" value="upload-files"/>
 				</form>
+				<div id="downloadFilesContainer">
+
+				</div>
 				<div id="renameFileContainer">
 
 				</div>

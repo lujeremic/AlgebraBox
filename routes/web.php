@@ -64,6 +64,7 @@ Route::group(['middleware' => ['web']], function () {
 		$allowedRequests = array(// prevent unnecessary requests
 			'upload-files' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'uploadFiles', 'params' => array()),
 			'create-folder' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'makeDirectory', 'params' => array()),
+			'download-files' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'downloadFiles', 'params' => array()),
 			'rename-file' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'renameFile', 'params' => array()),
 			'delete-files' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'deleteFiles', 'params' => array()),
 			'copy-files' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'copyFiles', 'params' => array()),
