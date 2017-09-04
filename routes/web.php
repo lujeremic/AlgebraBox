@@ -67,7 +67,12 @@ Route::group(['middleware' => ['web']], function () {
 			'rename-file' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'renameFile', 'params' => array()),
 			'delete-files' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'deleteFiles', 'params' => array()),
 			'copy-files' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'copyFiles', 'params' => array()),
+			'move-files' => array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'moveFiles', 'params' => array()),
 		);
+		// we only allow certain ajax methods in users home group
+		if ($request->ajax()) {
+			$allowedRequests['DM-LoadMoreMenuItems'] = array('controller' => '\App\Http\Controllers\User\UploadController', 'method' => 'DirectoryManagerLoadMoreMenuItemsAjax', 'params' => array());
+		}
 		// check our request 
 		if (!isset($allowedRequests[$action])) {
 			abort(400, 'You have a bad request!', array('location', URL::previous()));

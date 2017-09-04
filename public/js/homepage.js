@@ -98,9 +98,25 @@ var addCopyFilesForm = function (target, fileID) {
 	} else
 		target.append('<form id="CFForm" action="' + location.pathname + '" method="POST">\n\
 						<div id="copyFiles" class="hiddenActions" data-id="' + fileID + '"><i class="fa fa-files-o" aria-hidden="true"></i>Copy</div>\n\
-						<div class="form-errors copyFolder alert alert-danger" style="display: none">Please select file or files to copy.</div>\n\
+						<div class="form-errors copyFolder alert alert-danger" style="display: none">Please select files or directories to copy.</div>\n\
 						<input type="hidden" name="copy_files" value=""/>\n\
 						<input type="hidden" name="action" value="copy-files"/>\n\
+						<input type="hidden" name="_token" value="' + csrf + '"/>\n\
+					  </form>');
+	return deffered.resolve(1).promise();
+};
+var addMoveFilesForm = function (target, fileID) {
+	var deffered = jQuery.Deferred();
+	var moveButton = jQuery('#moveFiles');
+	if (moveButton.length) {
+		moveButton.attr('data-id', fileID);
+	} else
+		target.append('<form id="MFForm" action="' + location.pathname + '" method="POST">\n\
+						<div id="moveFiles" class="hiddenActions" data-id="' + fileID + '"><i class="fa fa-arrows" aria-hidden="true"></i>Move</div>\n\
+						<div class="form-errors copyFolder alert alert-danger" style="display: none">Please select files or directories to move.</div>\n\
+						<input type="hidden" name="move_files" value=""/>\n\
+						<input type="hidden" name="move_destination" value=""/>\n\
+						<input type="hidden" name="action" value="move-files"/>\n\
 						<input type="hidden" name="_token" value="' + csrf + '"/>\n\
 					  </form>');
 	return deffered.resolve(1).promise();
@@ -141,6 +157,10 @@ var unbindCustomFormSubmitionEvent = function () {
 jQuery(function () {
 	var userActionForms = jQuery('#userActionContainer');
 	var renameFileContainer = jQuery('#renameFileContainer');
+	var moveFilesContainer = jQuery('#moveFilesContainer');
+	var moveFilesModalButton = jQuery('#openMoveFilesModal');
+	var triggerMoveFilesForm = jQuery('#triggerMoveFilesForm');
+	var moveFilesModal = jQuery('#moveFilesModal');
 	var copyFilesContainer = jQuery('#copyFilesContainer');
 	var deleteFilesContainer = jQuery('#deleteFilesContainer');
 	var createNewDirForm = jQuery('#CNDForm');
@@ -156,6 +176,7 @@ jQuery(function () {
 	var newDirectoryName = jQuery('#newDirectoryName');
 	var newfolderNameLiveEdit = jQuery('#newfolderNameLiveEdit');
 	var showFileManager = jQuery('#showFileManager');
+	var userDirScheme = jQuery('#userDirScheme');
 	var formErrors = {
 		createFolder: jQuery('.form-errors.createFolder')
 	};
@@ -234,7 +255,7 @@ jQuery(function () {
 						file_path: tableRow.find('.name a')
 					};
 					// set form path
-					renameFileData.form_inputs.renamed_file_path.attr('value', escape(renameFileData.checkedFile.file_path.attr('href')));
+					renameFileData.form_inputs.renamed_file_path.attr('value', encodeURIComponent(renameFileData.checkedFile.file_path.attr('href')));
 				});
 
 			} else {
@@ -242,12 +263,13 @@ jQuery(function () {
 			}
 			if (totalCheckedFiles === 0) {
 				// remove delte files form
-				jQuery('#DFForm,#CFForm').remove();
+				jQuery('#DFForm,#CFForm,#MFForm').remove();
 				// show new folder button
 				createNewDirForm.show();
 			} else {
 				addCopyFilesForm(copyFilesContainer, checkedRadioButton.attr('id')).done(function () {});
 				addDeleteFilesForm(deleteFilesContainer, checkedRadioButton.attr('id')).done(function () {});
+				addMoveFilesForm(moveFilesContainer, checkedRadioButton.attr('id')).done(function () {});
 				createNewDirForm.hide();
 			}
 		}
@@ -372,5 +394,94 @@ jQuery(function () {
 			jQuery('input[name="copy_files"]').attr('value', JSON.stringify(listOfFilesToCopy));
 			jQuery('#CFForm').submit();
 		}
+	});
+	// move files 
+	jQuery('body').on('click', '#moveFiles', function (e) {
+		e.preventDefault();
+		var active = jQuery(this);
+		var listOfFilesToMove = [];
+		jQuery.each(checkedItems, function (i, v) {
+			var fileLink = encodeURIComponent('home/' + jQuery(this).closest('tr').find('.name a').attr('href'));
+			listOfFilesToMove.push(fileLink);
+		});
+		if (listOfFilesToMove.length > 0) {
+			jQuery('input[name="move_files"]').attr('value', JSON.stringify(listOfFilesToMove));
+			moveFilesModalButton[0].click();
+			//jQuery('#CFForm').submit();
+		}
+	});
+	// handle selected menu item in directory manager
+	jQuery('body').on('click', '#userDirScheme .menuItemContainer', function (e) {
+		e.preventDefault();
+		var active = jQuery(this);
+		active.toggleClass('selected');
+		userDirScheme.find('.menuItemContainer').not(active).removeClass('selected');
+		triggerMoveFilesForm.prop('disabled', false);
+	});
+	jQuery('body').on('click', 'span[id^=menuItemSubDirectories-]', function (e) {
+		e.preventDefault();
+		var active = jQuery(this);
+		var carret = active.find('i').first();
+		var li = active.closest('li');
+		var subdirMenu = li.find('ul').first();
+		if (subdirMenu.length > 0) {
+			subdirMenu.toggle('fast', function () {
+				if (subdirMenu.is(':visible')) {
+					carret.removeClass('fa-caret-right').addClass('fa-caret-down');
+				} else
+					carret.removeClass('fa-caret-down').addClass('fa-caret-right');
+			});
+			return;
+		}
+		var parentLink = li.attr('data-link');
+		jQuery.ajaxSetup({
+			headers: {
+				'X-CSRF-TOKEN': csrf
+			}
+		});
+		var formData = {
+			parent_item_link: encodeURIComponent(parentLink),
+			action: 'DM-LoadMoreMenuItems'
+		};
+		var ajaxResult = jQuery.ajax({
+			type: 'POST',
+			url: '/home',
+			data: formData,
+			dataType: 'json'
+		});
+		ajaxResult.done(function (response) {
+			var data = response.data;
+			if (response.status == 0 || data.length === 0) {
+				return false;
+			}
+			carret.removeClass('fa-caret-right').addClass('fa-caret-down');
+			li.append(data);
+		});
+	});
+	// when directory manager is being closed
+	moveFilesModal.on('hide.bs.modal', function (e) {
+		userDirScheme.find('li').removeClass('selected');
+		triggerMoveFilesForm.prop('disabled', true);
+	});
+	// submit move files 
+	jQuery('body').on('click', '#triggerMoveFilesForm', function (e) {
+		e.preventDefault();
+		var active = jQuery(this);
+		var currentSelectedDir = jQuery('#userDirScheme .menuItemContainer.selected');
+		var path = encodeURIComponent(currentSelectedDir.closest('li').attr('data-link'));
+		var filesToMove = jQuery.parseJSON(jQuery('#MFForm input[name="move_files"]').val());
+		var canMove = true; // stupid solution in hurry !!!
+		jQuery.each(filesToMove, function (i, v) {
+			if (path === v) {
+				//canMove = false;
+				alert('You can\'t move file in to it\'s self');
+				return false;
+			}
+		});
+		if (!canMove) {
+			return false;
+		}
+		jQuery('#MFForm input[name="move_destination"]').attr('value', path);
+		jQuery('#MFForm').submit();
 	});
 });

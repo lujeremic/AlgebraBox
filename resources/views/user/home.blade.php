@@ -9,7 +9,6 @@
 <link rel="stylesheet" href="{{ asset('css/home.css') }}"></link>
 @stop
 @section('homepage-js-files')
-<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <script src="{{ asset('js/homepage.js') }}"></script>
 <script src="{{ asset('js/stickyKit.js') }}"></script>
 @stop
@@ -85,10 +84,42 @@
 					</tbody>
 				</table>
 			</div>
-			<ul>
-			</ul>
-			@endif
 
+			@endif
+			<!-- Trigger the modal with a button -->
+			<button id="openMoveFilesModal" type="button" class="hidden btn btn-info btn-lg" data-toggle="modal" data-target="#moveFilesModal"></button>
+			<!-- Modal -->
+			<div class="modal fade" id="moveFilesModal" role="dialog">
+				<div class="modal-dialog modal-lg">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal">&times;</button>
+							<h4 class="modal-title">Move Your files</h4>
+						</div>
+						<div class="modal-body">
+							<div class="table-responsive">
+								<ul id="userDirScheme" class="dirManager">
+									@for($i = 0; $i< $directory_manager->total_menu_items ; $i++)
+									<li data-link="{{$directory_manager->menu_items[$i]['link']}}">
+										<div class="menuItemContainer">
+											@if($directory_manager->menu_items[$i]['total_menu_items'] > 0)
+											<span id="menuItemSubDirectories-{{$i + 1}}"><i class="fa fa-caret-right"></i></span>
+											@endif
+											<span class="typeIcon"><i class="fa fa-folder-o" aria-hidden="true"></i></span>
+											<span class="file_name">{{$directory_manager->menu_items[$i]['name']}}</span>
+										</div>
+									</li>
+									@endfor
+								</ul>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button id="triggerMoveFilesForm" type="button" class="btn btn-primary" disabled>Move</button>
+							<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 		<div class="col-sm-3 col-md-3">
 			<div id="userActionContainer">
@@ -123,6 +154,9 @@
 					<input type="hidden" name="action" value="upload-files"/>
 				</form>
 				<div id="renameFileContainer">
+
+				</div>
+				<div id="moveFilesContainer">
 
 				</div>
 				<div id="copyFilesContainer">

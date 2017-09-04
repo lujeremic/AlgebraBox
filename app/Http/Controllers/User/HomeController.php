@@ -82,6 +82,19 @@ class HomeController extends Controller {
 		}
 		// create breadcrumb
 		$viewData['breadcrumb'] = HtmlUtilities::createBreadCrumb($request->getPathInfo());
+		// set data for dir manager
+		$getAllBaseDirectories = $storageDisk->directories($userRootDirName);
+		$numOfAllBaseDirectories = count($getAllBaseDirectories);
+		$viewData['directory_manager'] = new \stdClass();
+		$viewData['directory_manager']->total_menu_items = $numOfAllBaseDirectories;
+		for ($i = 0; $i < $numOfAllBaseDirectories; $i++) {
+			$directoryRealPath = $getAllBaseDirectories[$i];
+			$directoryLinkPath = str_replace($userRootDirName, 'home', $directoryRealPath);
+			$viewData['directory_manager']->menu_items[$i]['name'] = basename($directoryLinkPath);
+			$viewData['directory_manager']->menu_items[$i]['link'] = $directoryLinkPath;
+			$viewData['directory_manager']->menu_items[$i]['total_menu_items'] =count($storageDisk->directories($directoryRealPath));
+		}
+		//die(dump($viewData['directory_manager']));
 		return view('user.home', $viewData);
 	}
 

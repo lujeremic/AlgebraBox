@@ -77,6 +77,20 @@ body #userStorageTable td.name a:hover
 	float: left;
 	width: 200px;
 }
+/*
+*	-------------------------------
+*		Move files modal (Dir manager)
+*	-------------------------------
+*/
+.dirManager{
+	cursor: pointer;
+	color: #337ab7;
+	list-style: none;
+}
+.dirManager li .menuItemContainer.selected{
+	background: rgba(130, 179, 241, 0.4);
+}
+
 
 
 /*
